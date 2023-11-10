@@ -28,10 +28,11 @@ router.post("/auth/login", async (req, res) => {
     });
   }
 
+  const expiresIn = "10s";
   const accessToken = jwt.sign(
     { userId: user.id },
     process.env.JWT_SECRET,
-    { expiresIn: "12h" }
+    { expiresIn }
   );
 
   return res.status(200).json({
@@ -39,6 +40,7 @@ router.post("/auth/login", async (req, res) => {
     message: "로그인에 성공했습니다.",
     data: {
       accessToken,
+      유효기간: expiresIn,
       userId: user.id,
     },
   });
