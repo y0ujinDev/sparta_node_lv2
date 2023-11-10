@@ -4,9 +4,10 @@ const port = 3000;
 
 const productsRouter = require("./routers/products.router.js");
 const authRouter = require("./routers/auth.router.js");
+const usersRouter = require("./routers/users.router.js");
 
 app.use(express.json());
-app.use("/api", [productsRouter, authRouter]);
+app.use("/api", [productsRouter, authRouter, usersRouter]);
 
 app.get("/", (req, res) => {
   res.send("Hello, World!");
