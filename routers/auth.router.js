@@ -11,6 +11,7 @@ router.post("/auth/signup", async (req, res, next) => {
   }
 
   const existingUser = await Users.findOne({ where: { email } });
+
   if (existingUser) {
     return next(createError(409, "이미 가입 된 이메일입니다."));
   }
@@ -22,13 +23,13 @@ router.post("/auth/signup", async (req, res, next) => {
   const user = await Users.create({
     email,
     password,
-    name,
+    name
   });
 
   const { password: _, ...userWithoutPassword } = user.get();
   res.status(200).json({
     message: "회원가입에 성공했습니다.",
-    data: userWithoutPassword,
+    data: userWithoutPassword
   });
 });
 
