@@ -10,13 +10,37 @@ require("dotenv").config();
 router.post("/auth/login", async (req, res, next) => {
   const { email, password } = req.body;
 
+  try {
+    const user = await handleLogin(email, password);
+    const token = generateToken(user.id);
+
+    return res.status(200).json({
+      message: "로그인에 성공했습니다.",
+      data: {
+        ...token,
+        userId: user.id,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+const generateToken = (userId) => {
+  const expiresIn = "12h";
+  const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET, {
+    expiresIn,
+  });
+  return { accessToken, expiresIn };
+};
+
+const handleLogin = async (email, password) => {
   const user = await Users.findOne({ where: { email } });
+
   if (!user) {
-    return next(
-      createError(
-        400,
-        "해당 이메일을 가진 사용자를 찾을 수 없습니다."
-      )
+    throw createError(
+      400,
+      "해당 이메일을 가진 사용자를 찾을 수 없습니다."
     );
   }
 
@@ -24,25 +48,12 @@ router.post("/auth/login", async (req, res, next) => {
     password,
     user.password
   );
+
   if (!isValidPassword) {
-    return next(createError(400, "비밀번호가 일치하지 않습니다."));
+    throw createError(400, "비밀번호가 일치하지 않습니다.");
   }
 
-  const expiresIn = "12h";
-  const accessToken = jwt.sign(
-    { userId: user.id },
-    process.env.JWT_SECRET,
-    { expiresIn }
-  );
-
-  return res.status(200).json({
-    message: "로그인에 성공했습니다.",
-    data: {
-      accessToken,
-      expiresIn,
-      userId: user.id,
-    },
-  });
-});
+  return user;
+};
 
 module.exports = router;

@@ -1,0 +1,57 @@
+### 
+# @name signup
+POST http://localhost:3000/api/auth/signup HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "userpassword",
+  "passwordConfirm": "userpassword",
+  "name": "username"
+}
+
+### 
+# @name login
+POST http://localhost:3000/api/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "userpassword"
+}
+
+### 
+# @name getProducts
+GET http://localhost:3000/api/products HTTP/1.1
+
+### 
+# @name getProductDetail
+GET http://localhost:3000/api/products/1 HTTP/1.1
+
+### 
+# @name createProduct
+POST http://localhost:3000/api/products HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.data.accessToken}}
+
+{
+  "title": "product title",
+  "content": "product content"
+}
+
+### 
+# @name updateProduct
+PUT http://localhost:3000/api/products/1 HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.data.accessToken}}
+
+{
+  "title": "updated product title",
+  "content": "updated product content",
+  "status": "on sale"
+}
+
+### 
+# @name deleteProduct
+DELETE http://localhost:3000/api/products/1 HTTP/1.1
+Authorization: Bearer {{login.response.body.data.accessToken}}
