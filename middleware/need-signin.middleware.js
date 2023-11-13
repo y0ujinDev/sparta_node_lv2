@@ -24,9 +24,7 @@ const authenticate = async (req, res, next) => {
       });
     }
 
-    req.locals = {
-      user,
-    };
+    res.locals.user = user;
 
     next();
   } catch (err) {
@@ -40,13 +38,10 @@ const authenticate = async (req, res, next) => {
         success: false,
         message: "토큰 검증에 실패하였습니다.",
       });
+    } else {
+      next(err);
     }
   }
-
-  res.status(500).json({
-    success: false,
-    message: "서버 내부 오류입니다.",
-  });
 };
 
 module.exports = authenticate;

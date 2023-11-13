@@ -16,12 +16,8 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      author: {
+      userId: {
         type: Sequelize.STRING,
-        allowNull: false,
-      },
-      password: {
-        type: Sequelize.INTEGER,
         allowNull: false,
       },
       status: {
