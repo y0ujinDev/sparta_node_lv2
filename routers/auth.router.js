@@ -3,21 +3,28 @@ const { Users } = require("../models");
 const router = express.Router();
 const createError = require("../utils/errorResponse");
 
+const {
+  ERR_MISSING_EMAIL,
+  ERR_ALREADY_REGISTERED,
+  ERR_PASSWORD_MISMATCH,
+  MSG_SIGNUP_SUCCESS
+} = require("../utils/constants");
+
 router.post("/auth/signup", async (req, res, next) => {
   const { email, password, passwordConfirm, name } = req.body;
 
   if (!email) {
-    return next(createError(400, "이메일 입력이 필요합니다."));
+    return next(createError(400, ERR_MISSING_EMAIL));
   }
 
   const existingUser = await Users.findOne({ where: { email } });
 
   if (existingUser) {
-    return next(createError(409, "이미 가입 된 이메일입니다."));
+    return next(createError(409, ERR_ALREADY_REGISTERED));
   }
 
   if (password !== passwordConfirm) {
-    return next(createError(400, "비밀번호가 일치하지 않습니다."));
+    return next(createError(400, ERR_PASSWORD_MISMATCH));
   }
 
   const user = await Users.create({
@@ -28,7 +35,7 @@ router.post("/auth/signup", async (req, res, next) => {
 
   const { password: _, ...userWithoutPassword } = user.get();
   res.status(200).json({
-    message: "회원가입에 성공했습니다.",
+    message: MSG_SIGNUP_SUCCESS,
     data: userWithoutPassword
   });
 });
