@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const moment = require("moment");
 const { Products, Users } = require("../models");
 const {
   verifyToken,
@@ -9,8 +8,11 @@ const {
 const checkProductOwner = require("../middleware/checkProductOwner.middleware");
 const validateProductData = require("../middleware/validateProductData.middleware");
 const createError = require("../utils/errorResponse");
-const { handleError } = require("../utils/errorHandlers");
+const checkProductExistence = require("../middleware/checkProductExistence.middleware");
+const errorHandler = require("../middleware/errorHandler.middleware");
 const routes = require("../utils/routes");
+const findProductById = require("../utils/findProductById");
+const transformProduct = require("../utils/transformProduct");
 const {
   productAttributes,
   Status,
@@ -20,34 +22,47 @@ const {
 } = require("../utils/constants");
 
 // 상품 목록 조회
-router.get(routes.PRODUCTS, (req, res, next) => {
-  handleError(
-    Products.findAll({
-      ...queryOptions,
-      order: [["createdAt", "DESC"]]
-    }).then(products => {
-      const result = products.map(product =>
-        transformProduct(product, "", false)
-      );
-      res.json(result);
-    }),
-    res,
-    next
-  );
-});
+router.get(
+  routes.PRODUCTS,
+  async (req, res, next) => {
+    try {
+      const products = await Products.findAll({
+        ...queryOptions,
+        order: [["createdAt", "DESC"]]
+      });
+
+      if (!products || products.length === 0) {
+        res.json({
+          message: ErrorMessages.PRODUCT_NOT_FOUND,
+          products: []
+        });
+      } else {
+        const result = products.map(product =>
+          transformProduct(product, "", false)
+        );
+
+        res.json(result);
+      }
+    } catch (err) {
+      next(err);
+    }
+  },
+  errorHandler
+);
 
 // 상품 상세 조회
-router.get(routes.PRODUCT_ID, (req, res, next) => {
-  handleError(
-    Products.findOne({
-      ...queryOptions
-    }).then(product => {
-      res.json(transformProduct(product, "", false));
-    }),
-    res,
-    next
-  );
-});
+router.get(
+  routes.PRODUCT_ID,
+  checkProductExistence,
+  async (req, res, next) => {
+    try {
+      res.json(transformProduct(req.product, "", false));
+    } catch (err) {
+      next(err);
+    }
+  },
+  errorHandler
+);
 
 // 상품 등록
 router.post(
@@ -75,7 +90,8 @@ router.post(
     } catch (error) {
       next(error);
     }
-  }
+  },
+  errorHandler
 );
 
 // 상품 수정
@@ -83,11 +99,12 @@ router.put(
   routes.PRODUCT_ID,
   verifyToken,
   authenticateUser,
+  checkProductExistence,
   checkProductOwner,
   validateProductData,
   async (req, res, next) => {
     try {
-      const { title, content, status } = req.body;
+      const { title, content, status = Status.SELLING } = req.body;
 
       if (status !== Status.SELLING && status !== Status.SOLD) {
         return next(
@@ -105,7 +122,8 @@ router.put(
     } catch (error) {
       next(error);
     }
-  }
+  },
+  errorHandler
 );
 
 // 상품 삭제
@@ -113,6 +131,7 @@ router.delete(
   routes.PRODUCT_ID,
   verifyToken,
   authenticateUser,
+  checkProductExistence,
   checkProductOwner,
   async (req, res, next) => {
     try {
@@ -122,32 +141,9 @@ router.delete(
     } catch (err) {
       next(err);
     }
-  }
+  },
+  errorHandler
 );
-
-const transformProduct = (
-  product,
-  message = null,
-  includeCreatedAt = false
-) => {
-  const { id, title, content, status, user } = product.get();
-  const transformedProduct = {
-    id,
-    title,
-    name: user.name,
-    content,
-    status,
-    updatedAt: moment(product.updatedAt).format("YYYY-MM-DD HH:mm:ss")
-  };
-  if (includeCreatedAt) {
-    transformedProduct.createdAt = moment(product.createdAt).format(
-      "YYYY-MM-DD HH:mm:ss"
-    );
-  }
-  return message
-    ? { message, product: transformedProduct }
-    : { product: transformedProduct };
-};
 
 const queryOptions = {
   attributes: productAttributes,
@@ -158,13 +154,6 @@ const queryOptions = {
       attributes: ["name"]
     }
   ]
-};
-
-const findProductById = async id => {
-  return await Products.findOne({
-    where: { id },
-    include: ["user"]
-  });
 };
 
 module.exports = router;

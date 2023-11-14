@@ -19,6 +19,12 @@ router.post(routes.SIGNUP, async (req, res, next) => {
     );
   }
 
+  if (!password || !passwordConfirm) {
+    return next(
+      createError(StatusCodes.BAD_REQUEST, ErrorMessages.MISSING_PASSWORD)
+    );
+  }
+
   const existingUser = await Users.findOne({ where: { email } });
 
   if (existingUser) {

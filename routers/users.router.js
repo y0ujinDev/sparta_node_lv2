@@ -14,7 +14,7 @@ const {
   SuccessMessages,
   ErrorMessages
 } = require("../utils/constants");
-const { comparePassword } = require("../utils/passwordUtils");
+const comparePassword = require("../utils/passwordUtils");
 
 require("dotenv").config();
 
@@ -68,6 +68,10 @@ const handleLogin = async (email, password) => {
 
   if (!user) {
     throw createError(StatusCodes.BAD_REQUEST, ErrorMessages.USER_NOT_FOUND);
+  }
+
+  if (!password) {
+    throw createError(StatusCodes.BAD_REQUEST, ErrorMessages.MISSING_PASSWORD);
   }
 
   const isValidPassword = await comparePassword(password, user.password);
