@@ -20,8 +20,8 @@ const productAttributes = [
 ];
 
 const Status = {
-  SELLING: "판매 중",
-  SOLD: "판매 완료"
+  SELLING: "FOR_SALE",
+  SOLD: "SOLD_OUT"
 };
 
 const ErrorMessages = {

@@ -4,7 +4,10 @@ const bcrypt = require("bcryptjs");
 module.exports = (sequelize, DataTypes) => {
   class Users extends Model {
     static associate(models) {
-      // define association here
+      Users.hasMany(models.Products, {
+        foreignKey: "userId",
+        as: "products"
+      });
     }
   }
   Users.init(
@@ -14,34 +17,36 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         unique: true,
         validate: {
-          isEmail: true,
-        },
+          isEmail: true
+        }
       },
       password: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: false
       },
       name: {
         type: DataTypes.STRING,
-        allowNull: false,
-      },
+        allowNull: false
+      }
     },
     {
       sequelize,
       modelName: "Users",
       timestamps: true,
       hooks: {
-        beforeCreate: async (user) => {
-          const salt = await bcrypt.genSalt();
-          user.password = await bcrypt.hash(user.password, salt);
-        },
-        beforeUpdate: async (user) => {
-          if (user.changed("password")) {
+        beforeCreate: async user => {
+          if (user.password) {
             const salt = await bcrypt.genSalt();
             user.password = await bcrypt.hash(user.password, salt);
           }
         },
-      },
+        beforeUpdate: async user => {
+          if (user.changed("password")) {
+            const salt = await bcrypt.genSalt();
+            user.password = await bcrypt.hash(user.password, salt);
+          }
+        }
+      }
     }
   );
   return Users;

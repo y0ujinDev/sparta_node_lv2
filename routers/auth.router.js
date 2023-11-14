@@ -4,7 +4,6 @@ const router = express.Router();
 const createError = require("../utils/errorResponse");
 const routes = require("../utils/routes");
 const {
-  Status,
   StatusCodes,
   SuccessMessages,
   ErrorMessages

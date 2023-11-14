@@ -4,13 +4,17 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const { Users } = require("../models");
 const createError = require("../utils/errorResponse");
-const authenticate = require("../middleware/need-signin.middleware");
+const {
+  verifyToken,
+  authenticateUser
+} = require("../middleware/auth.middleware");
 const routes = require("../utils/routes");
 const {
   StatusCodes,
   SuccessMessages,
   ErrorMessages
 } = require("../utils/constants");
+const { comparePassword } = require("../utils/passwordUtils");
 
 require("dotenv").config();
 
@@ -35,16 +39,21 @@ router.post(routes.LOGIN, async (req, res, next) => {
 });
 
 // 사용자 정보 확인
-router.get(routes.CURRENT_USER, authenticate, async (req, res, next) => {
-  try {
-    const user = res.locals.user;
-    const { id, email, name } = user;
+router.get(
+  routes.CURRENT_USER,
+  verifyToken,
+  authenticateUser,
+  async (req, res, next) => {
+    try {
+      const user = res.locals.user;
+      const { id, email, name } = user;
 
-    res.json({ id, email, name });
-  } catch (err) {
-    next(err);
+      res.json({ id, email, name });
+    } catch (err) {
+      next(err);
+    }
   }
-});
+);
 
 const generateToken = userId => {
   const expiresIn = "12h";
@@ -61,7 +70,7 @@ const handleLogin = async (email, password) => {
     throw createError(StatusCodes.BAD_REQUEST, ErrorMessages.USER_NOT_FOUND);
   }
 
-  const isValidPassword = await bcrypt.compare(password, user.password);
+  const isValidPassword = await comparePassword(password, user.password);
 
   if (!isValidPassword) {
     throw createError(StatusCodes.BAD_REQUEST, ErrorMessages.INVALID_PASSWORD);

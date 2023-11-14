@@ -2,8 +2,8 @@ const jwt = require("jsonwebtoken");
 const { Users } = require("../models");
 const { StatusCodes, ErrorMessages } = require("../utils/constants");
 
-// 사용자 인증을 처리하는 미들웨어
-const authenticate = async (req, res, next) => {
+/// 토큰 유효성 검사
+const verifyToken = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -16,17 +16,7 @@ const authenticate = async (req, res, next) => {
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    const user = await Users.findOne({
-      where: { id: decoded.userId }
-    });
-    if (!user) {
-      return res.status(StatusCodes.UNAUTHORIZED).json({
-        success: false,
-        message: ErrorMessages.INVALID_USER
-      });
-    }
-
-    res.locals.user = user;
+    res.locals.decoded = decoded;
 
     next();
   } catch (err) {
@@ -46,4 +36,28 @@ const authenticate = async (req, res, next) => {
   }
 };
 
-module.exports = authenticate;
+// 사용자 유효성 검사
+const authenticateUser = async (req, res, next) => {
+  try {
+    const user = await Users.findOne({
+      where: { id: res.locals.decoded.userId }
+    });
+    if (!user) {
+      return res.status(StatusCodes.UNAUTHORIZED).json({
+        success: false,
+        message: ErrorMessages.INVALID_USER
+      });
+    }
+
+    res.locals.user = user;
+
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = {
+  verifyToken,
+  authenticateUser
+};
