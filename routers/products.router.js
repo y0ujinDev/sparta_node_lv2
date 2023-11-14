@@ -5,19 +5,17 @@ const authenticate = require("../middleware/need-signin.middleware");
 const checkProductOwner = require("../middleware/checkProductOwner.middleware");
 const createError = require("../utils/errorResponse");
 const { handleError } = require("../utils/errorHandlers");
-
+const routes = require("../utils/routes");
 const {
   productAttributes,
   Status,
-  ERR_INVALID_DATA,
-  ERR_INVALID_STATUS,
-  MSG_PRODUCT_CREATED,
-  MSG_PRODUCT_UPDATED,
-  MSG_PRODUCT_DELETED
+  StatusCodes,
+  SuccessMessages,
+  ErrorMessages
 } = require("../utils/constants");
 
 // 상품 목록 조회
-router.get("/products", (req, res, next) => {
+router.get(routes.PRODUCTS, (req, res, next) => {
   handleError(
     Products.findAll({
       attributes: productAttributes,
@@ -29,7 +27,7 @@ router.get("/products", (req, res, next) => {
 });
 
 // 상품 상세 조회
-router.get("/products/:productId", (req, res, next) => {
+router.get(routes.PRODUCT_ID, (req, res, next) => {
   handleError(
     Products.findOne({
       where: { id: req.params.productId },
@@ -41,20 +39,27 @@ router.get("/products/:productId", (req, res, next) => {
 });
 
 // 상품 등록
-router.post("/products", authenticate, async (req, res, next) => {
+router.post(routes.PRODUCTS, authenticate, async (req, res, next) => {
   try {
     const { title, content } = req.body;
     const userId = res.locals.user.id;
+
     if (!title || !content) {
-      return next(createError(400, ERR_INVALID_DATA));
+      return next(
+        createError(StatusCodes.BAD_REQUEST, ErrorMessages.INVALID_DATA)
+      );
     }
+
     const product = await Products.create({
       title,
       content,
       userId,
       status: Status.SELLING
     });
-    res.status(201).json(createProductResponse(MSG_PRODUCT_CREATED, product));
+
+    res
+      .status(StatusCodes.CREATED)
+      .json(createProductResponse(SuccessMessages.PRODUCT_CREATED, product));
   } catch (error) {
     next(error);
   }
@@ -62,17 +67,24 @@ router.post("/products", authenticate, async (req, res, next) => {
 
 // 상품 수정
 router.put(
-  "/products/:productId",
+  routes.PRODUCT_ID,
   authenticate,
   checkProductOwner,
   async (req, res, next) => {
     try {
       const { title, content, status } = req.body;
+
       if (status !== Status.SELLING && status !== Status.SOLD) {
-        return next(createError(400, ERR_INVALID_STATUS));
+        return next(
+          createError(StatusCodes.BAD_REQUEST, ErrorMessages.INVALID_STATUS)
+        );
       }
+
       await req.product.update({ title, content, status });
-      res.json(createProductResponse(MSG_PRODUCT_UPDATED, req.product));
+
+      res.json(
+        createProductResponse(SuccessMessages.PRODUCT_UPDATED, req.product)
+      );
     } catch (error) {
       next(error);
     }
@@ -81,13 +93,14 @@ router.put(
 
 // 상품 삭제
 router.delete(
-  "/products/:productId",
+  routes.PRODUCT_ID,
   authenticate,
   checkProductOwner,
   async (req, res, next) => {
     try {
       await req.product.destroy();
-      res.json({ message: MSG_PRODUCT_DELETED });
+
+      res.json({ message: SuccessMessages.PRODUCT_DELETED });
     } catch (err) {
       next(err);
     }

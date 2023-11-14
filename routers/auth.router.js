@@ -2,29 +2,36 @@ const express = require("express");
 const { Users } = require("../models");
 const router = express.Router();
 const createError = require("../utils/errorResponse");
-
+const routes = require("../utils/routes");
 const {
-  ERR_MISSING_EMAIL,
-  ERR_ALREADY_REGISTERED,
-  ERR_PASSWORD_MISMATCH,
-  MSG_SIGNUP_SUCCESS
+  Status,
+  StatusCodes,
+  SuccessMessages,
+  ErrorMessages
 } = require("../utils/constants");
 
-router.post("/auth/signup", async (req, res, next) => {
+// 사용자 등록
+router.post(routes.SIGNUP, async (req, res, next) => {
   const { email, password, passwordConfirm, name } = req.body;
 
   if (!email) {
-    return next(createError(400, ERR_MISSING_EMAIL));
+    return next(
+      createError(StatusCodes.BAD_REQUEST, ErrorMessages.MISSING_EMAIL)
+    );
   }
 
   const existingUser = await Users.findOne({ where: { email } });
 
   if (existingUser) {
-    return next(createError(409, ERR_ALREADY_REGISTERED));
+    return next(
+      createError(StatusCodes.CONFLICT, ErrorMessages.ALREADY_REGISTERED)
+    );
   }
 
   if (password !== passwordConfirm) {
-    return next(createError(400, ERR_PASSWORD_MISMATCH));
+    return next(
+      createError(StatusCodes.BAD_REQUEST, ErrorMessages.PASSWORD_MISMATCH)
+    );
   }
 
   const user = await Users.create({
@@ -34,8 +41,8 @@ router.post("/auth/signup", async (req, res, next) => {
   });
 
   const { password: _, ...userWithoutPassword } = user.get();
-  res.status(200).json({
-    message: MSG_SIGNUP_SUCCESS,
+  res.status(StatusCodes.OK).json({
+    message: SuccessMessages.SIGNUP_SUCCESS,
     data: userWithoutPassword
   });
 });

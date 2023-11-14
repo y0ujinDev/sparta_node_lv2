@@ -5,25 +5,25 @@ const bcrypt = require("bcryptjs");
 const { Users } = require("../models");
 const createError = require("../utils/errorResponse");
 const authenticate = require("../middleware/need-signin.middleware");
-
+const routes = require("../utils/routes");
 const {
-  ERR_USER_NOT_FOUND,
-  ERR_INVALID_PASSWORD,
-  MSG_LOGIN_SUCCESS
+  StatusCodes,
+  SuccessMessages,
+  ErrorMessages
 } = require("../utils/constants");
 
 require("dotenv").config();
 
 // 사용자 로그인
-router.post("/auth/login", async (req, res, next) => {
+router.post(routes.LOGIN, async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
     const user = await handleLogin(email, password);
     const token = generateToken(user.id);
 
-    return res.status(200).json({
-      message: MSG_LOGIN_SUCCESS,
+    return res.status(StatusCodes.OK).json({
+      message: SuccessMessages.LOGIN_SUCCESS,
       data: {
         ...token,
         userId: user.id
@@ -35,10 +35,11 @@ router.post("/auth/login", async (req, res, next) => {
 });
 
 // 사용자 정보 확인
-router.get("/auth/me", authenticate, async (req, res, next) => {
+router.get(routes.CURRENT_USER, authenticate, async (req, res, next) => {
   try {
     const user = res.locals.user;
     const { id, email, name } = user;
+
     res.json({ id, email, name });
   } catch (err) {
     next(err);
@@ -57,13 +58,13 @@ const handleLogin = async (email, password) => {
   const user = await Users.findOne({ where: { email } });
 
   if (!user) {
-    throw createError(400, ERR_USER_NOT_FOUND);
+    throw createError(StatusCodes.BAD_REQUEST, ErrorMessages.USER_NOT_FOUND);
   }
 
   const isValidPassword = await bcrypt.compare(password, user.password);
 
   if (!isValidPassword) {
-    throw createError(400, ERR_INVALID_PASSWORD);
+    throw createError(StatusCodes.BAD_REQUEST, ErrorMessages.INVALID_PASSWORD);
   }
 
   return user;

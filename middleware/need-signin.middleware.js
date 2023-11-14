@@ -1,13 +1,15 @@
 const jwt = require("jsonwebtoken");
 const { Users } = require("../models");
+const { StatusCodes, ErrorMessages } = require("../utils/constants");
 
+// 사용자 인증을 처리하는 미들웨어
 const authenticate = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({
+      return res.status(StatusCodes.UNAUTHORIZED).json({
         success: false,
-        message: "헤더에 유효한 토큰이 없습니다.",
+        message: ErrorMessages.MISSING_TOKEN
       });
     }
 
@@ -15,12 +17,12 @@ const authenticate = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     const user = await Users.findOne({
-      where: { id: decoded.userId },
+      where: { id: decoded.userId }
     });
     if (!user) {
-      return res.status(401).json({
+      return res.status(StatusCodes.UNAUTHORIZED).json({
         success: false,
-        message: "유효한 사용자가 아닙니다.",
+        message: ErrorMessages.INVALID_USER
       });
     }
 
@@ -29,14 +31,14 @@ const authenticate = async (req, res, next) => {
     next();
   } catch (err) {
     if (err instanceof jwt.TokenExpiredError) {
-      return res.status(401).json({
+      return res.status(StatusCodes.UNAUTHORIZED).json({
         success: false,
-        message: "토큰의 유효기간이 지났습니다.",
+        message: ErrorMessages.TOKEN_EXPIRED
       });
     } else if (err instanceof jwt.JsonWebTokenError) {
-      return res.status(401).json({
+      return res.status(StatusCodes.UNAUTHORIZED).json({
         success: false,
-        message: "토큰 검증에 실패하였습니다.",
+        message: ErrorMessages.TOKEN_VERIFICATION_FAILED
       });
     } else {
       next(err);
