@@ -8,34 +8,17 @@ const {
   SuccessMessages,
   ErrorMessages
 } = require("../utils/constants");
+const validateSignup = require("../middleware/validateSignup.middleware");
 
 // 사용자 등록
-router.post(routes.SIGNUP, async (req, res, next) => {
+router.post(routes.SIGNUP, validateSignup, async (req, res, next) => {
   const { email, password, passwordConfirm, name } = req.body;
-
-  if (!email) {
-    return next(
-      createError(StatusCodes.BAD_REQUEST, ErrorMessages.MISSING_EMAIL)
-    );
-  }
-
-  if (!password || !passwordConfirm) {
-    return next(
-      createError(StatusCodes.BAD_REQUEST, ErrorMessages.MISSING_PASSWORD)
-    );
-  }
 
   const existingUser = await Users.findOne({ where: { email } });
 
   if (existingUser) {
     return next(
       createError(StatusCodes.CONFLICT, ErrorMessages.ALREADY_REGISTERED)
-    );
-  }
-
-  if (password !== passwordConfirm) {
-    return next(
-      createError(StatusCodes.BAD_REQUEST, ErrorMessages.PASSWORD_MISMATCH)
     );
   }
 

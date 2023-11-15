@@ -6,7 +6,7 @@
 
 # API 명세서 URL
 
-- 구글 Docs 공유 URL 추가
+- https://docs.google.com/spreadsheets/d/1cHSXYOKN9E4OyasjgxSsuxRb7DV8nx5oIntjT5TLZZM/edit#gid=0
 
 # ERD URL
 
@@ -32,6 +32,15 @@
 4. **Http Status Code**
 
 - 과제를 진행하면서 `사용한 Http Status Code`를 모두 나열하고, 각각이 `의미하는 것`과 `어떤 상황에 사용`했는지 작성해 주세요.
+  : OK: 200,
+  CREATED: 201,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  CONFLICT: 409,
+  INTERNAL_SERVER_ERROR: 500
+  변수명으로 역할 설명이 되었다고 생각합니다.
 
 5. **리팩토링**
 

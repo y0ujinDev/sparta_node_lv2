@@ -15,11 +15,12 @@ const {
   ErrorMessages
 } = require("../utils/constants");
 const comparePassword = require("../utils/passwordUtils");
+const validateLogin = require("../middleware/validateLogin.middleware");
 
 require("dotenv").config();
 
 // 사용자 로그인
-router.post(routes.LOGIN, async (req, res, next) => {
+router.post(routes.LOGIN, validateLogin, async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
@@ -55,6 +56,7 @@ router.get(
   }
 );
 
+// 토큰 생성
 const generateToken = userId => {
   const expiresIn = "12h";
   const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET, {
@@ -63,15 +65,12 @@ const generateToken = userId => {
   return { accessToken, expiresIn };
 };
 
+// DB 교차 검사
 const handleLogin = async (email, password) => {
   const user = await Users.findOne({ where: { email } });
 
   if (!user) {
     throw createError(StatusCodes.BAD_REQUEST, ErrorMessages.USER_NOT_FOUND);
-  }
-
-  if (!password) {
-    throw createError(StatusCodes.BAD_REQUEST, ErrorMessages.MISSING_PASSWORD);
   }
 
   const isValidPassword = await comparePassword(password, user.password);

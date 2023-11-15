@@ -9,7 +9,6 @@ const checkProductOwner = require("../middleware/checkProductOwner.middleware");
 const validateProductData = require("../middleware/validateProductData.middleware");
 const createError = require("../utils/errorResponse");
 const checkProductExistence = require("../middleware/checkProductExistence.middleware");
-const errorHandler = require("../middleware/errorHandler.middleware");
 const routes = require("../utils/routes");
 const findProductById = require("../utils/findProductById");
 const transformProduct = require("../utils/transformProduct");
@@ -22,47 +21,38 @@ const {
 } = require("../utils/constants");
 
 // 상품 목록 조회
-router.get(
-  routes.PRODUCTS,
-  async (req, res, next) => {
-    try {
-      const products = await Products.findAll({
-        ...queryOptions,
-        order: [["createdAt", "DESC"]]
+router.get(routes.PRODUCTS, async (req, res, next) => {
+  try {
+    const products = await Products.findAll({
+      ...queryOptions,
+      order: [["createdAt", "DESC"]]
+    });
+
+    if (!products || products.length === 0) {
+      res.json({
+        message: ErrorMessages.PRODUCT_NOT_FOUND,
+        products: []
       });
+    } else {
+      const result = products.map(product =>
+        transformProduct(product, "", false)
+      );
 
-      if (!products || products.length === 0) {
-        res.json({
-          message: ErrorMessages.PRODUCT_NOT_FOUND,
-          products: []
-        });
-      } else {
-        const result = products.map(product =>
-          transformProduct(product, "", false)
-        );
-
-        res.json(result);
-      }
-    } catch (err) {
-      next(err);
+      res.json(result);
     }
-  },
-  errorHandler
-);
+  } catch (err) {
+    next(err);
+  }
+});
 
 // 상품 상세 조회
-router.get(
-  routes.PRODUCT_ID,
-  checkProductExistence,
-  async (req, res, next) => {
-    try {
-      res.json(transformProduct(req.product, "", false));
-    } catch (err) {
-      next(err);
-    }
-  },
-  errorHandler
-);
+router.get(routes.PRODUCT_ID, checkProductExistence, async (req, res, next) => {
+  try {
+    res.json(transformProduct(req.product, "", false));
+  } catch (err) {
+    next(err);
+  }
+});
 
 // 상품 등록
 router.post(
@@ -90,8 +80,7 @@ router.post(
     } catch (error) {
       next(error);
     }
-  },
-  errorHandler
+  }
 );
 
 // 상품 수정
@@ -122,8 +111,7 @@ router.put(
     } catch (error) {
       next(error);
     }
-  },
-  errorHandler
+  }
 );
 
 // 상품 삭제
@@ -141,8 +129,7 @@ router.delete(
     } catch (err) {
       next(err);
     }
-  },
-  errorHandler
+  }
 );
 
 const queryOptions = {
