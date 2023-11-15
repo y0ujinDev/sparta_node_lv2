@@ -93,15 +93,19 @@ router.put(
   validateProductData,
   async (req, res, next) => {
     try {
-      const { title, content, status = Status.SELLING } = req.body;
+      const { title, content, status } = req.body;
 
-      if (status !== Status.SELLING && status !== Status.SOLD) {
+      if (status && status !== Status.SELLING && status !== Status.SOLD) {
         return next(
           createError(StatusCodes.BAD_REQUEST, ErrorMessages.INVALID_STATUS)
         );
       }
 
-      await req.product.update({ title, content, status });
+      await req.product.update({
+        title,
+        content,
+        status: status || Status.SELLING
+      });
 
       const updatedProduct = await findProductById(req.product.id);
 
