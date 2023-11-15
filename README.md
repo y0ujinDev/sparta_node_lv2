@@ -10,7 +10,7 @@
 
 # ERD URL
 
-- ERD Cloud URL 추가
+- https://www.erdcloud.com/d/xgTGMYdQDimG7AoFW
 
 # 더 고민해 보기
 
