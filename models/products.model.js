@@ -1,5 +1,6 @@
 "use strict";
 const { Model } = require("sequelize");
+const { Status } = require("../utils/constants");
 module.exports = (sequelize, DataTypes) => {
   class Products extends Model {
     static associate(models) {
@@ -25,7 +26,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       status: {
         type: DataTypes.STRING,
-        defaultValue: "FOR_SALE"
+        defaultValue: Status.SELLING
       }
     },
     {
