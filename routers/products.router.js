@@ -29,7 +29,7 @@ router.get(routes.PRODUCTS, async (req, res, next) => {
     });
 
     if (!products || products.length === 0) {
-      res.json({
+      res.status(StatusCodes.NOT_FOUND).json({
         message: ErrorMessages.PRODUCT_NOT_FOUND,
         products: []
       });
