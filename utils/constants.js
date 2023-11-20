@@ -30,6 +30,7 @@ const ErrorMessages = Object.freeze({
   MISSING_NAME: "이름을 입력해주세요.",
   ALREADY_REGISTERED: "이미 가입 된 이메일입니다.",
   PASSWORD_MISMATCH: "비밀번호와 비밀번호 재확인이 일치하지 않습니다.",
+  SHORT_PASSWORD: "비밀번호를 6자리 이상 입력해주세요.",
   INVALID_EMAIL: "이메일 형식이 올바르지 않습니다.",
   INVALID_DATA: "데이터 형식이 올바르지 않습니다.",
   INVALID_STATUS: "상태 값이 잘못되었습니다.",

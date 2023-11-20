@@ -14,7 +14,9 @@ const validateSignup = [
     .exists()
     .withMessage(ErrorMessages.MISSING_PASSWORD)
     .notEmpty()
-    .withMessage(ErrorMessages.MISSING_PASSWORD),
+    .withMessage(ErrorMessages.MISSING_PASSWORD)
+    .isLength({ min: 6 })
+    .withMessage(ErrorMessages.SHORT_PASSWORD),
   check("passwordConfirm")
     .exists()
     .withMessage(ErrorMessages.MISSING_PASSWORD)
